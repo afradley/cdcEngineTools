@@ -9,7 +9,9 @@ const unsigned int DRM_MAX_SECTIONS = 16777215;
 
 #define REPACK_MODE (0)//Must be on for PCD->DDS tool
 
-#if (TR7 || TRAE)
+#if LOK5
+	#define DRM_VERSION (11)
+#elif (TR7 || TRAE)
 	#define DRM_VERSION (14)
 #elif TR8
 	#define DRM_VERSION (19)

@@ -93,9 +93,14 @@ void cDRM::ExtractSections(char* szFilePath)
 		section->ucType = ReadUByte(ifs);
 		section->ucUnk00 = ReadUByte(ifs);
 		section->usUnk01 = ReadUShort(ifs);
+#ifdef LOK5
+		section->ucType = 0; // No section type enum available in LOK5, but 2 seems to be animations.
+		section->uiHash = ReadUInt(ifs);
+#else
 		section->uiHeaderSize = ReadUInt(ifs);	
 		section->uiHash = ReadUInt(ifs);
 		section->uiLang = ReadUInt(ifs);
+#endif
 	}
 
 #if TR8 || TRAS
@@ -151,7 +156,10 @@ void cDRM::ExtractSections(char* szFilePath)
 			}
 
 			//Skip header info
-#if TR7 || TRAE
+#if LOK5
+			section->uiHeaderSize = ReadUInt(ifs);
+			ifs.seekg((section->uiHeaderSize << 0x2), SEEK_CUR);
+#elif TR7 || TRAE
 			ifs.seekg(((section->uiHeaderSize >> 0x8) * 0x8), SEEK_CUR);
 #elif TR8
 			ifs.seekg((section->uiHeaderSize >> 0x8), SEEK_CUR);
@@ -162,7 +170,16 @@ void cDRM::ExtractSections(char* szFilePath)
 #endif
 			//Read then write the section data
 			ifs.read(szSectionData, section->uiSize);
-#if REPACK_MODE && (TR7 || TRAE)
+
+#if REPACK_MODE
+	#if LOK5
+			//Write section header
+			WriteUInt(ofs, section->uiSize);
+			WriteUByte(ofs, section->ucType);
+			WriteUByte(ofs, section->ucUnk00);
+			WriteUShort(ofs, section->usUnk01);
+			WriteUInt(ofs, section->uiHash);
+	#elif (TR7 || TRAE)
 			//Write section header
 			WriteUInt(ofs, 0x54434553);
 			WriteUInt(ofs, section->uiSize);
@@ -172,6 +189,7 @@ void cDRM::ExtractSections(char* szFilePath)
 			WriteUInt(ofs, section->uiHeaderSize);
 			WriteUInt(ofs, section->uiHash);
 			WriteUInt(ofs, section->uiLang);
+	#endif
 #endif
 			ofs.write(szSectionData, section->uiSize);
 			
@@ -189,7 +207,10 @@ void cDRM::ExtractSections(char* szFilePath)
 		else
 		{
 			//Declare char* to store section data
-#if TR7 || TRAE
+#if LOK5
+			section->uiHeaderSize = ReadUInt(ifs);
+			char* szSectionData = new char[section->uiSize + (section->uiHeaderSize << 2)];
+#elif TR7 || TRAE
 			char* szSectionData = new char[section->uiSize + ((section->uiHeaderSize >> 0x8) * 0x8)];
 #elif TR8
 			char* szSectionData = new char[section->uiSize + (section->uiHeaderSize >> 0x8)];
@@ -214,6 +235,14 @@ void cDRM::ExtractSections(char* szFilePath)
 
 			//Read then write the section data
 #if REPACK_MODE
+	#if LOK5
+			//Write section header
+			WriteUInt(ofs, section->uiSize);
+			WriteUByte(ofs, section->ucType);
+			WriteUByte(ofs, section->ucUnk00);
+			WriteUShort(ofs, section->usUnk01);
+			WriteUInt(ofs, section->uiHash);
+	#else
 			//Write section header
 			WriteUInt(ofs, 0x54434553);
 			WriteUInt(ofs, section->uiSize);
@@ -223,8 +252,13 @@ void cDRM::ExtractSections(char* szFilePath)
 			WriteUInt(ofs, section->uiHeaderSize);
 			WriteUInt(ofs, section->uiHash);
 			WriteUInt(ofs, section->uiLang);
+	#endif
 #endif
-#if TR7 || TRAE
+
+#if LOK5
+			ifs.read(szSectionData, section->uiSize + (section->uiHeaderSize >> 0x2));
+			ofs.write(szSectionData, section->uiSize + (section->uiHeaderSize >> 0x2));
+#elif TR7 || TRAE
 			ifs.read(szSectionData, section->uiSize + ((section->uiHeaderSize >> 0x8) * 0x8));
 			ofs.write(szSectionData, section->uiSize + ((section->uiHeaderSize >> 0x8) * 0x8));
 #elif TR8

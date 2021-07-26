@@ -1,7 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
-#if TR7
+#if LOK5
+#define GAME_NAME "Legacy of Kain: Defiance"
+#elif TR7
 #define GAME_NAME "Tomb Raider: Legend"
 #elif TRAE
 #define GAME_NAME "Tomb Raider: Anniversary"

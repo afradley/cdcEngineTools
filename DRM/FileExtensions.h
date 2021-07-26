@@ -1,21 +1,25 @@
 #ifndef FILEEXTENSIONS_H
 #define FILEEXTESNIONS_H
 
-#if (TR7 || TRAE)
-
+#if LOK5
 		char* szExtensions[]
 		{
-				".gnc",
-				".ept",
-				".ani",
-				".pbrwc",
-				".pbr",
-				".pcd",
-				".wave",
-				".dtp",
-				".script",
-				".shad",
-				".nst"
+			".gnc"
+		};
+#elif (TR7 || TRAE)
+		char* szExtensions[]
+		{
+			".gnc",
+			".ept",
+			".ani",
+			".pbrwc",
+			".pbr",
+			".pcd",
+			".wave",
+			".dtp",
+			".script",
+			".shad",
+			".nst"
 		};
 #elif TR8
 	#if PC
